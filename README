@@ -1,0 +1,5 @@
+A server for measurement equipments connected with GPIB
+
+Currently these interfaces are supported:
+- Agilent SICL
+- COM port

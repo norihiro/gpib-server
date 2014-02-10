@@ -41,6 +41,10 @@ class serial : public device_s
 			dbf("serial::read s=<%s>\n", s);
 			return act;
 		}
+		int close() {
+			if(handle!=INVALID_HANDLE_VALUE)
+				CloseHandle(handle);
+		}
 };
 
 device_s *create_device_serial(const char *name)

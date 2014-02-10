@@ -33,6 +33,9 @@ class device_echo : public device_s
 			}
 			return 0;
 		}
+		int close() {
+			return 0;
+		}
 };
 
 static std::map<std::string, device_s*> devices;
@@ -73,4 +76,19 @@ device_s* get_device(const char *name)
 		}
 	}
 	return NULL;
+}
+
+int close_device(const char *name)
+{
+	dbf("close_device(%s)\n", name);
+	if(devices.count(name)) {
+		int ret = devices[name]->close();
+		delete devices[name];
+		devices.erase(name);
+		return ret;
+	}
+	else {
+		dbf("close_device(%s) device not found\n", name);
+		return 1;
+	}
 }

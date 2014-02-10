@@ -102,4 +102,9 @@ void client_s::execute(char *line)
 		else
 			send(s, "1\n", 2, 0);
 	}
+	else if(!strcmp(cmd, "c")) {
+		char *dev = parse_cmd(line);
+		dbf("cmd=<%s> dev=<%s>\n", cmd, dev);
+		close_device(dev);
+	}
 }

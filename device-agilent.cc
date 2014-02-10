@@ -19,6 +19,7 @@ extern "C" {
 	int SICLAPI iwrite (INST id, char _far *buf, unsigned long datalen, int endi, unsigned long _far *actual);
 	int SICLAPI iread (INST id, char _far *buf, unsigned long bufsize, int _far *reason, unsigned long _far *actual);
 	int SICLAPI itimeout(INST id,long tval);
+	int SICLAPI iclose(INST id);
 }
 #else
 #include "agilent/sicl.h"
@@ -49,6 +50,9 @@ class agilent : public device_s
 			while(actual>0 && isspace(s[actual-1])) s[--actual]=0;
 			dbf("agilent::read s=<%s>\n", s);
 			return (int)actual;
+		}
+		int close() {
+			return iclose(id);
 		}
 };
 

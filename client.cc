@@ -61,8 +61,6 @@ static char *parse_cmd(char *&s)
 void client_s::execute(char *line)
 {
 	char *cmd = parse_cmd(line);
-	dbf("cmd=<%s>\n", cmd);
-
 	if(!strcmp(cmd, "wr")) {
 		char *dev = parse_cmd(line);
 		dbf("cmd=<%s> dev=<%s>\n", cmd, dev);
@@ -106,5 +104,8 @@ void client_s::execute(char *line)
 		char *dev = parse_cmd(line);
 		dbf("cmd=<%s> dev=<%s>\n", cmd, dev);
 		close_device(dev);
+	}
+	else {
+		err("unknown command cmd=<%s>\n", cmd);
 	}
 }

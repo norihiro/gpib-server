@@ -1,4 +1,5 @@
 
+# to build code, use mingw32-make
 LANG=C
 #CL=wine /home/kamae/.wine/drive_c/Program\ Files/Microsoft\ Visual\ Studio\ 10.0/VC/bin/cl.exe
 

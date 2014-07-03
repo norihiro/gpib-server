@@ -15,8 +15,24 @@ class serial : public device_s
 			char s[64]={0}; snprintf(s, sizeof(s)-1, "\\\\.\\%s", n);
 			handle = CreateFile(s, GENERIC_READ|GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 			dbf("serial::open handle=%d <%s>\n", (int)handle, s);
-			if(handle==INVALID_HANDLE_VALUE)
+			if(handle==INVALID_HANDLE_VALUE) {
+				DWORD err = GetLastError();
+				LPVOID lpMsgBuf;
+				FormatMessage(
+						FORMAT_MESSAGE_ALLOCATE_BUFFER |
+						FORMAT_MESSAGE_FROM_SYSTEM |
+						FORMAT_MESSAGE_IGNORE_INSERTS,
+						NULL,
+						err,
+						MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+						(LPTSTR) &lpMsgBuf,
+						0,
+						NULL
+						);
+				fprintf(stderr, "error: serial::open CreateFile err=%d msg=%s\n", err, lpMsgBuf);
+
 				return 1;
+			}
 			dcb.BaudRate = 9600;
 			dcb.ByteSize = 8;
 			SetCommState(handle, &dcb);

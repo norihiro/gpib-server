@@ -36,6 +36,14 @@ class serial : public device_s
 			dcb.BaudRate = 9600;
 			dcb.ByteSize = 8;
 			SetCommState(handle, &dcb);
+
+			COMMTIMEOUTS ct {
+				100,
+				2, 1000,
+				2, 1000
+			};
+			SetCommTimeouts(handle, &ct);
+
 			return 0;
 		}
 		int write(const char *s) {

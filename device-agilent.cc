@@ -51,6 +51,9 @@ class agilent : public device_s
 			dbf("agilent::read s=<%s>\n", s);
 			return (int)actual;
 		}
+		int timeout(double t) {
+			return itimeout(id, (long)(t*1e3));
+		}
 		int close() {
 			return iclose(id);
 		}

@@ -105,6 +105,15 @@ void client_s::execute(char *line)
 		dbf("cmd=<%s> dev=<%s>\n", cmd, dev);
 		close_device(dev);
 	}
+	else if(!strcmp(cmd, "t")) {
+		char *dev = parse_cmd(line);
+		double t = strtof(line, &line);
+		dbf("cmd=<%s> dev=<%s> t=%f\n", cmd, dev, t);
+		device_s *d = get_device(dev);
+		int ret = d->timeout(t);
+		char buf[32];
+		send(s, buf, sprintf(buf, "%d\n", ret), 0);
+	}
 	else {
 		err("unknown command cmd=<%s>\n", cmd);
 	}

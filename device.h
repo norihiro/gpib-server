@@ -7,6 +7,7 @@ class device_s
 		virtual int write(const char *) = 0;
 		virtual int read(char *, int) = 0;
 		virtual int close() = 0;
+		virtual int timeout(double t) { return 1; }
 		virtual ~device_s() {}
 };
 

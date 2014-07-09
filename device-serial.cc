@@ -37,7 +37,7 @@ class serial : public device_s
 			dcb.ByteSize = 8;
 			SetCommState(handle, &dcb);
 
-			COMMTIMEOUTS ct {
+			COMMTIMEOUTS ct = {
 				100,
 				2, 1000,
 				2, 1000
@@ -64,6 +64,14 @@ class serial : public device_s
 			while(act>0 && isspace(s[act-1])) s[--act]=0;
 			dbf("serial::read s=<%s>\n", s);
 			return act;
+		}
+		int timeout(double t) {
+			COMMTIMEOUTS ct = {
+				0,
+				0, (DWORD)(t*1e3),
+				0, (DWORD)(t*1e3)
+			};
+			return SetCommTimeouts(handle, &ct) ? 0 : (int)GetLastError();
 		}
 		int close() {
 			if(handle!=INVALID_HANDLE_VALUE)

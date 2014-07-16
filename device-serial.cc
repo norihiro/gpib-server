@@ -34,15 +34,20 @@ class serial : public device_s
 				return 1;
 			}
 			dcb.BaudRate = 9600;
+			dcb.fBinary = 1;
 			dcb.ByteSize = 8;
+			dcb.StopBits = TWOSTOPBITS;
 			SetCommState(handle, &dcb);
 
-			COMMTIMEOUTS ct = {
-				100,
-				2, 1000,
-				2, 1000
-			};
-			SetCommTimeouts(handle, &ct);
+			COMMTIMEOUTS ct;
+			GetCommTimeouts(handle, &ct);
+			dbf("%d  %d %d  %d %d\n",
+					ct.ReadIntervalTimeout,
+					ct.ReadTotalTimeoutMultiplier,
+					ct.ReadTotalTimeoutConstant,
+					ct.WriteTotalTimeoutMultiplier,
+					ct.WriteTotalTimeoutConstant
+			   );
 
 			return 0;
 		}
@@ -50,6 +55,10 @@ class serial : public device_s
 			dbf("serial:write(%s)\n", s);
 			int len = strlen(s);
 			DWORD dw;
+			ClearCommError(handle, &(dw=0), NULL);
+			if(dw) {
+				fprintf(stderr, "error: serial::write: ClearCommError %#x.\n", (int)dw);
+			}
 			char *x = (char*)s;
 			x[len] = '\n';
 			WriteFile(handle, x, len+1, &dw, NULL);
@@ -57,9 +66,27 @@ class serial : public device_s
 			return 0;
 		}
 		int read(char *s, int n) {
-			dbf("serial::read(%d)\n", n);
 			DWORD dw;
-			ReadFile(handle, s, n, &dw, NULL);
+			ClearCommError(handle, &(dw=0), NULL);
+			if(dw) {
+				fprintf(stderr, "error: serial::read: ClearCommError %#x.\n", (int)dw);
+			}
+			if(ReadFile(handle, s, n, &dw, NULL)==0) {
+				DWORD err = GetLastError();
+				LPVOID lpMsgBuf;
+				FormatMessage(
+						FORMAT_MESSAGE_ALLOCATE_BUFFER |
+						FORMAT_MESSAGE_FROM_SYSTEM |
+						FORMAT_MESSAGE_IGNORE_INSERTS,
+						NULL,
+						err,
+						MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+						(LPTSTR) &lpMsgBuf,
+						0,
+						NULL
+						);
+				fprintf(stderr, "error: serial::read ReadFile err=%d msg=%s\n", err, lpMsgBuf);
+			}
 			int act=(int)dw;
 			while(act>0 && isspace(s[act-1])) s[--act]=0;
 			dbf("serial::read s=<%s>\n", s);
@@ -67,7 +94,7 @@ class serial : public device_s
 		}
 		int timeout(double t) {
 			COMMTIMEOUTS ct = {
-				0,
+				(DWORD)(t*1e3),
 				0, (DWORD)(t*1e3),
 				0, (DWORD)(t*1e3)
 			};

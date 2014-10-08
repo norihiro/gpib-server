@@ -48,6 +48,14 @@ int client_s::receive()
 // 	while(
 // }
 
+static void replace_crlf(char *s, char *end)
+{
+	for(; *s && s!=end; s++) {
+		if(*s=='\r' || *s=='\n')
+			*s = ' ';
+	}
+}
+
 static char *parse_cmd(char *&s)
 {
 	while(*s && isspace(*s)) s++;
@@ -70,6 +78,7 @@ void client_s::execute(char *line)
 
 			char buf[1024+1] = "0 ";
 			int len = d->read(buf+2, sizeof(buf)-3);
+			replace_crlf(buf+2, buf+len+2);
 			buf[len+2] = '\n';
 			send(s, buf, len+3, 0);
 		}
@@ -94,6 +103,7 @@ void client_s::execute(char *line)
 		if(d) {
 			char buf[1024+1] = "0 ";
 			int len = d->read(buf+2, sizeof(buf)-3);
+			replace_crlf(buf+2, buf+len+2);
 			buf[len+2] = '\n';
 			send(s, buf, len+3, 0);
 		}

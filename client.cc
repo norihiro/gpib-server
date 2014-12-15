@@ -13,25 +13,43 @@
 
 void client_s::close()
 {
-	dbf("client(%d) closing\n", s);
-	s = INVALID_SOCKET;
+	if(s!=INVALID_SOCKET) {
+		dbf("client(%d) closing\n", s);
+		closesocket(s);
+		s = INVALID_SOCKET;
+	}
+}
+
+int client_s::fill_recv()
+{
+	char buf[1024] = {0};
+	int ret = recv(s, buf, sizeof(buf), 0);
+	if(ret<=0) {
+		close();
+	}
+	else {
+		buf_recv.insert(buf_recv.end(), buf, buf+ret);
+	}
+	return ret;
 }
 
 int client_s::receive()
 {
-	char buf[1024] = {0};
-	int ret = recv(s, buf, sizeof(buf), 0);
+	unsigned int n_buf_prev = buf_recv.size();
+	int ret = fill_recv();
 	if(ret>0) {
-		for(int i=0; i<ret; i++) {
-			if(buf[i]=='\n') {
-				if(buf_recv.size() && buf_recv[buf_recv.size()-1]=='\r')
-					buf_recv.resize(buf_recv.size()-1);
-				buf_recv.push_back(0);
-				execute(&buf_recv[0]);
-				buf_recv.clear();
+		for(unsigned int i=n_buf_prev; i<buf_recv.size(); ) {
+			if(buf_recv[i]=='\n') {
+				if(i>0 && buf_recv[i-1]=='\r')
+					buf_recv[i-1] = 0;
+				buf_recv[i] = 0;
+				std::vector<char> cmd(buf_recv.begin(), buf_recv.begin()+i);
+				buf_recv.erase(buf_recv.begin(), buf_recv.begin()+i);
+				execute(&cmd[0]);
+				i = 0;
 			}
 			else
-				buf_recv.push_back(buf[i]);
+				i++;
 		}
 		return 0;
 	}
@@ -40,13 +58,6 @@ int client_s::receive()
 		return 1;
 	}
 }
-
-// static void remove_last_space(char *s)
-// {
-// 	char *e;
-// 	for(e=s; *e; e++); e--;
-// 	while(
-// }
 
 static void replace_crlf(char *s, char *end)
 {

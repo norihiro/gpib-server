@@ -1,6 +1,6 @@
+#include "config.h"
 #include <cstdio>
 #include <vector>
-#include <winsock2.h>
 #include <algorithm>
 #undef max
 
@@ -14,8 +14,10 @@
 
 static int init()
 {
+#ifdef HAVE_WINSOCKET
 	WSADATA wsaData;
 	WSAStartup(MAKEWORD(2,0), &wsaData);
+#endif // HAVE_WINSOCKET
 	return 0;
 }
 
@@ -25,12 +27,16 @@ static int bind_and_listen(SOCKET s)
 	struct sockaddr_in a;
 	int ret;
 
-	BOOL yes=1;
+	int yes=1;
 	setsockopt(s, SOL_SOCKET, SO_REUSEADDR, (const char *)&yes, sizeof(yes));
 
 	a.sin_family = AF_INET;
 	a.sin_port = htons(PORT);
+#ifdef HAVE_WINSOCKET
 	a.sin_addr.S_un.S_addr = INADDR_ANY;
+#else
+	a.sin_addr.s_addr = INADDR_ANY;
+#endif
 
 	ret = bind(s, (struct sockaddr *)&a, sizeof(a));
 	if(ret) {
@@ -50,7 +56,7 @@ static int bind_and_listen(SOCKET s)
 client_s accept_socet(SOCKET soc)
 {
 	struct sockaddr_in client;
-	int len = sizeof(client);
+	socklen_t len = sizeof(client);
 	client_s c;
 	c.s = accept(soc, (struct sockaddr*)&client, &len);
 	dbf("accept %d\n", c.s);

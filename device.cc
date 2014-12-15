@@ -1,4 +1,4 @@
-
+#include "config.h"
 #include <vector>
 #include <string>
 #include <cstring>
@@ -46,6 +46,7 @@ static device_s *create_device(const char *name)
 	if(!strcmp(name, "echo")) {
 		return new device_echo();
 	}
+#ifdef ENABLE_SICL32
 	else if(name[0]=='a') {
 		while(*name && *name!=':') name++;
 		while(*name && *name==':') name++;
@@ -54,9 +55,12 @@ static device_s *create_device(const char *name)
 		else
 			return NULL;
 	}
+#endif // ENABLE_SICL32
+#ifdef ENABLE_SERIAL
 	else if(!strncmp(name, "com", 3)) {
 		return create_device_serial(name);
 	}
+#endif // ENABLE_SERIAL
 	return NULL;
 }
 
@@ -68,7 +72,7 @@ device_s* get_device(const char *name)
 	else {
 		device_s *d = create_device(name);
 		if(d) {
-			dbf("create_device succeeded(%d) name=<%s>\n", (int)d, name);
+			dbf("create_device succeeded(%p) name=<%s>\n", (void*)d, name);
 			return devices[name] = d;
 		}
 		else {

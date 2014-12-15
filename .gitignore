@@ -1,0 +1,14 @@
+*.o
+.*.swp
+*~
+/configure
+/config/
+/stats/
+Makefile.in
+aclocal.m4
+/autom4te.cache/
+/config.*
+/.deps/
+/stamp-h1
+/Makefile
+*.exe

@@ -43,8 +43,8 @@ int client_s::receive()
 				if(i>0 && buf_recv[i-1]=='\r')
 					buf_recv[i-1] = 0;
 				buf_recv[i] = 0;
-				std::vector<char> cmd(buf_recv.begin(), buf_recv.begin()+i);
-				buf_recv.erase(buf_recv.begin(), buf_recv.begin()+i);
+				std::vector<char> cmd(buf_recv.begin(), buf_recv.begin()+i+1);
+				buf_recv.erase(buf_recv.begin(), buf_recv.begin()+i+1);
 				execute(&cmd[0]);
 				i = 0;
 			}

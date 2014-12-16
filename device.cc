@@ -17,9 +17,9 @@ class device_echo : public device_s
 {
 	std::queue<std::string> buf;
 	public:
-		int write(const char *s) {
+		int write(const char *s, const char *e) {
 			dbf("echo::write(%s)\n", s);
-			buf.push(s);
+			buf.push(std::string(s, e));
 			return 0;
 		}
 		int read(char *s, int n) {

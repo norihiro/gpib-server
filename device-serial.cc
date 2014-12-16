@@ -51,18 +51,19 @@ class serial : public device_s
 
 			return 0;
 		}
-		int write(const char *s) {
+		int write(const char *s, const char *e) {
 			dbf("serial:write(%s)\n", s);
-			int len = strlen(s);
+			int len = e - s;
 			DWORD dw;
 			ClearCommError(handle, &(dw=0), NULL);
 			if(dw) {
 				fprintf(stderr, "error: serial::write: ClearCommError %#x.\n", (int)dw);
 			}
 			char *x = (char*)s;
+			char orig = x[len];
 			x[len] = '\n';
 			WriteFile(handle, x, len+1, &dw, NULL);
-			x[len] = 0;
+			x[len] = orig;
 			return 0;
 		}
 		int read(char *s, int n) {

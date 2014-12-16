@@ -35,12 +35,9 @@ class agilent : public device_s
 			itimeout(id, 1000);
 			return 0;
 		}
-		int write(const char *s) {
+		int write(const char *s, const char *e) {
 			dbf("agilent:write(%s)\n", s);
-			int len = strlen(s);
-			// s[len] = '\n';
-			iwrite(id, (char*)s, len, 1, NULL);
-			// s[len] = 0;
+			iwrite(id, (char*)s, e-s, 1, NULL);
 			return 0;
 		}
 		int read(char *s, int n) {

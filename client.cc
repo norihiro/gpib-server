@@ -33,11 +33,9 @@ int client_s::fill_recv()
 	return ret;
 }
 
-int client_s::receive()
+void client_s::recv1(int n_buf_prev)
 {
-	unsigned int n_buf_prev = buf_recv.size();
-	int ret = fill_recv();
-	if(ret>0) {
+	if(state==text) {
 		for(unsigned int i=n_buf_prev; i<buf_recv.size(); ) {
 			if(buf_recv[i]=='\n') {
 				if(i>0 && buf_recv[i-1]=='\r')
@@ -46,11 +44,32 @@ int client_s::receive()
 				std::vector<char> cmd(buf_recv.begin(), buf_recv.begin()+i+1);
 				buf_recv.erase(buf_recv.begin(), buf_recv.begin()+i+1);
 				execute(&cmd[0]);
-				i = 0;
+				recv1(0); return;
 			}
 			else
 				i++;
 		}
+	}
+	else if(state==recv_bin) {
+		if(buf_recv.size() >= size_next) {
+			device_s *d = get_device(dev_next.c_str());
+			if(d) {
+				int ret = d->write(&buf_recv[0], &buf_recv[size_next]);
+				char sz[16]; send(s, sz, sprintf(sz, "%d\n", ret), 0);
+			}
+			buf_recv.erase(buf_recv.begin(), buf_recv.begin()+size_next);
+			state = text;
+			recv1(0); return;
+		}
+	}
+}
+
+int client_s::receive()
+{
+	unsigned int n_buf_prev = buf_recv.size();
+	int ret = fill_recv();
+	if(ret>0) {
+		recv1(n_buf_prev);
 		return 0;
 	}
 	else {
@@ -85,7 +104,7 @@ void client_s::execute(char *line)
 		dbf("cmd=<%s> dev=<%s>\n", cmd, dev);
 		device_s *d = get_device(dev);
 		if(d) {
-			d->write(line);
+			d->write(line, line+strlen(line));
 
 			char buf[1024+1] = "0 ";
 			int len = d->read(buf+2, sizeof(buf)-3);
@@ -101,7 +120,7 @@ void client_s::execute(char *line)
 		dbf("cmd=<%s> dev=<%s>\n", cmd, dev);
 		device_s *d = get_device(dev);
 		if(d) {
-			d->write(line);
+			d->write(line, line+strlen(line));
 			send(s, "0\n", 2, 0);
 		}
 		else
@@ -120,6 +139,11 @@ void client_s::execute(char *line)
 		}
 		else
 			send(s, "1\n", 2, 0);
+	}
+	else if(!strcmp(cmd, "wb")) {
+		dev_next = parse_cmd(line);
+		size_next = strtol(line, &line, 10);
+		state = recv_bin;
 	}
 	else if(!strcmp(cmd, "c")) {
 		char *dev = parse_cmd(line);

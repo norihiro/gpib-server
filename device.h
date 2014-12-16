@@ -4,7 +4,7 @@
 class device_s
 {
 	public:
-		virtual int write(const char *) = 0;
+		virtual int write(const char *, const char *) = 0;
 		virtual int read(char *, int) = 0;
 		virtual int close() = 0;
 		virtual int timeout(double t) { return 1; }

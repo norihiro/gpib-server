@@ -29,7 +29,7 @@ class serial : public device_s
 						0,
 						NULL
 						);
-				fprintf(stderr, "error: serial::open CreateFile err=%d msg=%s\n", err, lpMsgBuf);
+				fprintf(stderr, "error: serial::open CreateFile err=%d msg=%s\n", (int)err, (const char*)lpMsgBuf);
 
 				return 1;
 			}
@@ -42,11 +42,11 @@ class serial : public device_s
 			COMMTIMEOUTS ct;
 			GetCommTimeouts(handle, &ct);
 			dbf("%d  %d %d  %d %d\n",
-					ct.ReadIntervalTimeout,
-					ct.ReadTotalTimeoutMultiplier,
-					ct.ReadTotalTimeoutConstant,
-					ct.WriteTotalTimeoutMultiplier,
-					ct.WriteTotalTimeoutConstant
+					(int)ct.ReadIntervalTimeout,
+					(int)ct.ReadTotalTimeoutMultiplier,
+					(int)ct.ReadTotalTimeoutConstant,
+					(int)ct.WriteTotalTimeoutMultiplier,
+					(int)ct.WriteTotalTimeoutConstant
 			   );
 
 			return 0;
@@ -86,7 +86,7 @@ class serial : public device_s
 						0,
 						NULL
 						);
-				fprintf(stderr, "error: serial::read ReadFile err=%d msg=%s\n", err, lpMsgBuf);
+				fprintf(stderr, "error: serial::read ReadFile err=%d msg=%s\n", (int)err, (char*)lpMsgBuf);
 			}
 			int act=(int)dw;
 			while(act>0 && isspace(s[act-1])) s[--act]=0;
@@ -104,6 +104,7 @@ class serial : public device_s
 		int close() {
 			if(handle!=INVALID_HANDLE_VALUE)
 				CloseHandle(handle);
+			return 0;
 		}
 };
 

@@ -33,7 +33,7 @@ struct client_s
 
 	// state==recv_bin
 	std::string dev_next;
-	int size_next;
+	unsigned int size_next;
 
 	client_s() { state=text; }
 };

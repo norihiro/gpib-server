@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <cctype>
 #include <cstring>
+#include <stdint.h>
 
 #include "client.h"
 #include "device.h"
@@ -149,6 +150,64 @@ void client_s::execute(char *line)
 		char *dev = parse_cmd(line);
 		dbf("cmd=<%s> dev=<%s>\n", cmd, dev);
 		close_device(dev);
+	}
+	else if(!strcmp(cmd, "x")) {
+		char *dev = parse_cmd(line);
+		dbf("cmd=<%s> dev=<%s>\n", cmd, dev);
+		device_s *d = get_device(dev);
+		if(d) {
+			std::string results;
+			int ret = 0;
+			bool flag_read = 0;
+			bool flag_address = 0;
+			int n_word = 1;
+			int base = 16;
+			const char *fmt = " %x";
+			while(line && *line) {
+				while(*line && isspace(*line)) line++;
+				if(!*line) break;
+				if(*line=='-') for(char c,cont=1; cont && (c=*++line); ) switch(c) {
+					case 'r': flag_read=1; break;
+					case 'w': flag_read=0; break;
+					case 'a': flag_address=1; break;
+					case '1': n_word=1; break;
+					case '2': n_word=2; break;
+					case '3': n_word=3; break;
+					case '4': n_word=4; break;
+					case 'o': base=8; fmt=" %o"; break;
+					case 'd': base=10; fmt=" %d"; break;
+					case 'x': base=16; fmt=" %x"; break;
+					default: cont=0; break;
+				}
+				else if(flag_read) {
+					const uint32_t a = strtol(line, &line, base);
+					uint8_t c[4]={0};
+					d->seek(a);
+					ret |= d->read((char*)c, n_word);
+					uint32_t u=0;
+					for(int i=0; i<n_word; i++) u |= c[i]<<(i*8);
+					char s[64]; sprintf(s, fmt, u);
+					results += s;
+				}
+				else {
+					const uint32_t u = strtol(line, &line, base);
+					if(flag_address) {
+						ret |= d->seek(u);
+						flag_address = 0;
+					}
+					else {
+						uint8_t c[4];
+						for(int i=0; i<n_word; i++) c[i] = (u>>(i*8))&0xff; // little endian
+						ret |= d->write((char*)c, (char*)(c+n_word));
+					}
+				}
+			}
+			char sz[64]; sprintf(sz, "%d", s);
+			results = sz + results + "\n";
+			send(s, results.c_str(), results.size(), 0);
+		}
+		else
+			send(s, "1\n", 2, 0);
 	}
 	else if(!strcmp(cmd, "t")) {
 		char *dev = parse_cmd(line);

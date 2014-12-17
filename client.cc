@@ -202,7 +202,7 @@ void client_s::execute(char *line)
 					}
 				}
 			}
-			char sz[64]; sprintf(sz, "%d", s);
+			char sz[64]; sprintf(sz, "%d", ret);
 			results = sz + results + "\n";
 			send(s, results.c_str(), results.size(), 0);
 		}

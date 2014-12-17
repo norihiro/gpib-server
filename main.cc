@@ -88,13 +88,16 @@ static int loop()
 				nfds = std::max(nfds, (int)c.s+1);
 				clients.push_back(c);
 			}
-			for(u_int i=0; i<clients.size() && ready>0; i++) if(FD_ISSET(clients[i].s, &fd_read)) {
-				ready--;
-				if(clients[i].receive()) {
-					FD_CLR(clients[i].s, &fd_mask);
-					clients.erase(clients.begin()+i);
-					i--;
-					nfds = soc+1; for(u_int j=0; j<clients.size(); j++) nfds = std::max(nfds, (int)clients[j].s+1);
+			for(u_int i=0; i<clients.size() && ready>0; i++) {
+				SOCKET s = clients[i].s;
+				if(FD_ISSET(s, &fd_read)) {
+					ready--;
+					if(clients[i].receive()) {
+						FD_CLR(s, &fd_mask);
+						clients.erase(clients.begin()+i);
+						i--;
+						nfds = soc+1; for(u_int j=0; j<clients.size(); j++) nfds = std::max(nfds, (int)clients[j].s+1);
+					}
 				}
 			}
 		}

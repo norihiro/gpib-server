@@ -4,5 +4,5 @@ Currently these interfaces are supported:
 - Agilent SICL
 - COM port
 
-Recommended build environment is Scientific Linux 6 with mingw32 cross compiler.
-You can build by a command `mingw32-make' and gpib-server.exe will be built.
+Recommended build environment is Scientific Linux 6/7 with mingw cross compiler.
+You can build by a command `mingw32-configure && make' and get gpibserver.exe.

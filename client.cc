@@ -146,6 +146,27 @@ void client_s::execute(char *line)
 		size_next = strtol(line, &line, 10);
 		state = recv_bin;
 	}
+	else if(!strcmp(cmd, "rb")) {
+		char *dev = parse_cmd(line);
+		int size = strtol(line, &line, 10);
+		device_s *d = get_device(dev);
+		if(d && size>0) {
+			char *buf = new char[size+2];
+			buf[0]='0'; buf[1]='\n';
+			int ret = d->read(buf+2, size);
+			if(ret==0) {
+				send(s, buf, size+2, 0);
+			}
+			else {
+				char sz[16];
+				send(s, sz, sprintf(sz, "%d\n", ret), 0);
+			}
+			delete[] buf;
+		}
+		else {
+			send(s, "1\n", 2, 0);
+		}
+	}
 	else if(!strcmp(cmd, "c")) {
 		char *dev = parse_cmd(line);
 		dbf("cmd=<%s> dev=<%s>\n", cmd, dev);
